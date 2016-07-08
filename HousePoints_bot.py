@@ -23,9 +23,8 @@ try:
 except:
 	print("No HousePoints_bot_record.pickle file found")
 
-#List of IRL names of prefects
-#Zach, Taylor, Broghan, Sophie, Ryan, Kei Lani, Will, Jordan
-prefects = [96233913, 91433585, 102493156, 109587356, 102108315, 95485395, 74472998, 87922925]
+# list of prefects telegram id are in the config file
+prefects = [int(id) for id in config.get("prefects", "id").split(", ")]
 userStep = {}
 for id in prefects:
 	userStep[id] = 4
