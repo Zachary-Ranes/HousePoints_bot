@@ -1,5 +1,6 @@
 #Written by Zachary Ranes
 
+import pickle
 import configparser
 import telebot
 from telebot import types
@@ -16,8 +17,11 @@ bot = telebot.TeleBot(config['telegram_bot_api']['telegram_token'])
 bot.HousePoints = [0,0,0,0]
 
 #reading in records from file when bot starts up
-with open("HousePoints_bot_record.txt","r") as record:
-	bot.HousePoints = [int(x) for x in record.read().split(' ')]
+try:
+	with open("HousePoints_bot_record.pickle","rb") as record:
+		bot.HousePoints = pickle.load(record)
+except:
+	print("No HousePoints_bot_record.pickle file found")
 
 #List of IRL names of prefects
 #Zach, Taylor, Broghan, Sophie, Ryan, Kei Lani, Will, Jordan
@@ -87,8 +91,8 @@ def AddPoints3(message):
 	try:
 		index = userStep[message.from_user.id]
 		bot.HousePoints[index]+= int(message.text)
-		with open("HousePoints_bot_record.txt","w") as newRecord:
-			newRecord.write(" ".join([str(x) for x in bot.HousePoints]))
+		with open("HousePoints_bot_record.pickle","wb") as newRecord:
+			pickle.dump(bot.HousePoints, newRecord)
 		bot.send_message(message.chat.id, message.text + " Points awarded to " + str(HouseNames(index)))
 
 	except:
