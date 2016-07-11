@@ -1,4 +1,5 @@
 #Written by Zachary Ranes
+#Writen for Python 3.4
 
 import configparser
 import telebot
@@ -9,7 +10,7 @@ config = configparser.ConfigParser()
 config.read("HousePoints_bot_config.cfg")
 
 #associate bot with token 
-bot = telebot.TeleBot(config['telegram_bot_api']['telegram_token'])
+bot = telebot.TeleBot(config.get("telegram_bot_api","telegram_token"))
 
 #array for holding house points
 #Gryffindor, Slytherin, Ravenclaw, Hufflepuff
