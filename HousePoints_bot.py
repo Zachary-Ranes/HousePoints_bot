@@ -2,6 +2,8 @@
 #Writen for Python 3.4
 
 import configparser
+import pickle
+import datetime
 import telebot
 from telebot import types
 
@@ -18,10 +20,11 @@ HousePoints = [0,0,0,0]
 
 #reading in records from file when bot starts up
 try:
-	with open("HousePoints_bot_record.txt","r") as record:
-		HousePoints = [int(score) for score in record.read().split(' ')]
+	with open("HousePoints_bot_record.pickle","rb") as record:
+		HousePoints = pickle.load(record)
+	record.close()
 except:
-	print("No HousePoints_bot_record.text file found, new one will be made apone first points awarded")
+	print("No HousePoints_bot_record.pickle file found, new one will be made apone first points awarded")
 
 # list of prefects telegram id are in the config file
 prefects = [int(id) for id in config.get("prefects", "id").split(", ")]
@@ -89,8 +92,11 @@ def AddPoints3(message):
 	try:
 		index = userStep[message.from_user.id]
 		HousePoints[index]+= int(message.text)
-		with open("HousePoints_bot_record.txt","w") as newRecord:
-			newRecord.write(" ".join([str(score) for score in HousePoints]))
+		
+		with open("HousePoints_bot_record.pickle","wb") as newRecord:
+			pickle.dump(HousePoints, newRecord)
+		newRecord.close()
+		
 		bot.send_message(message.chat.id, message.text + " Points awarded to " + str(HouseNames(index)))
 
 	except:
