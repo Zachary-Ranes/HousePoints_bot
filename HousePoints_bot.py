@@ -87,7 +87,10 @@ def AddPoints1H(message):
 
 	
 #this handles the responce to the four comands
-@bot.message_handler(func=lambda message: userStep[message.from_user.id] != 4 and message.from_user.id in prefects)
+@bot.message_handler(func=lambda message: message.from_user.id in prefects and userStep[message.from_user.id] == 0)
+@bot.message_handler(func=lambda message: message.from_user.id in prefects and userStep[message.from_user.id] == 1)
+@bot.message_handler(func=lambda message: message.from_user.id in prefects and userStep[message.from_user.id] == 2)
+@bot.message_handler(func=lambda message: message.from_user.id in prefects and userStep[message.from_user.id] == 3)
 def AddPoints3(message):
 	try:
 		index = userStep[message.from_user.id]
