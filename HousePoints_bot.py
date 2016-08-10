@@ -3,7 +3,7 @@
 
 import configparser
 import pickle
-import datetime
+import time
 import telebot
 from telebot import types
 
@@ -26,6 +26,7 @@ try:
 except:
 	print("No HousePoints_bot_record.pickle file found, new one will be made apone first points awarded")
 
+	
 # list of prefects telegram id are in the config file
 prefects = [int(id) for id in config.get("prefects", "id").split(", ")]
 
@@ -107,5 +108,9 @@ def AddPoints3(message):
 
 	userStep[message.from_user.id] = 4
 
-	
-bot.polling()
+
+while 1 == 1:
+	try:
+		bot.polling()
+	except:
+		time.sleep(30)
