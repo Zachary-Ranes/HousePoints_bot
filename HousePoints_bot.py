@@ -157,7 +157,6 @@ def AddPoints3(message):
 
 while True:
 	try:
-		bot.set_update_listener(DateCheck)
 		bot.polling()
 	except:
 		time.sleep(30)
