@@ -28,7 +28,7 @@ except:
 
 
 #an array that holds last months scores and the month number from which those scores are from
-LastMonthsPoints =[0,0,0,0,0,0]
+LastMonthsPoints = [0,0,0,0,0]
 
 #reading in records of last months points
 try:
@@ -37,6 +37,7 @@ try:
 	record.close()
 except:
 	print("No HousePoints_bot_record_lastMonth.pickle file found")
+	LastMonthsPoints[4] = 0
 
 	
 # list of prefects telegram id are in the config file
@@ -49,7 +50,7 @@ for id in prefects: userStep[id] = 4
 
 #Fuction that check to see if new month has turned yet
 def DateCheck(message):
-	if ((int(datetime.datetime.now().day) == 1) and (int(datetime.datetime.now().month) != int(LastMonthsPoints[4]))):
+	if ( (int(datetime.datetime.now().day) == 1) and (int(datetime.datetime.now().month) != LastMonthsPoints[4]) ):
 		LastMonthsPoints[0] = HousePoints[0]
 		LastMonthsPoints[1] = HousePoints[1]
 		LastMonthsPoints[2] = HousePoints[2]
