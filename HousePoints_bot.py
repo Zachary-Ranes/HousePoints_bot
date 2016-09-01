@@ -3,7 +3,7 @@
 
 import configparser
 import pickle
-import time
+import datetime 
 import telebot
 from telebot import types
 
@@ -26,6 +26,18 @@ try:
 except:
 	print("No HousePoints_bot_record.pickle file found, new one will be made apone first points awarded")
 
+
+#an array that holds last months scores and the month number from which those scores are from
+LastMonthsPoints =[0,0,0,0,0]
+
+#read =ing in records of last months points
+try:
+	with open("HousePoints_bot_record_lastMonth.pickle","rb") as record:
+		LastMonthsPoints = pickle.load(record)
+	record.close()
+except:
+	print("No HousePoints_bot_record_lastMonth.pickle file found")
+
 	
 # list of prefects telegram id are in the config file
 prefects = [int(id) for id in config.get("prefects", "id").split(", ")]
@@ -34,6 +46,20 @@ prefects = [int(id) for id in config.get("prefects", "id").split(", ")]
 userStep = {} 
 for id in prefects: userStep[id] = 4
 
+
+#Fuction that check to see if new month has turned yet
+def DateCheck(message):
+	if (int(datetime.datetime.now().day) == 1) and (LastMonthsPoints[4] != int(datetime.datetime.now().month)):
+		try:
+			with open("HousePoints_bot_record_lastMonth.pickle","wb") as newRecord:
+				pickle.dump(HousePoints, newRecord)
+			newRecord.close()
+			
+		except:
+			print("Failed to save pasted scores to file")
+
+	
+	
 
 #hiddin comand to check id to be added to prefect list
 @bot.message_handler(commands=['prefect_test'])
@@ -44,8 +70,20 @@ def CheckID(message):
 #Command for anyone to use to see how many points each house has
 @bot.message_handler(commands=['house_totals'])
 def PointsCount(message):
-    bot.send_message(message.chat.id, "Gryffindor:  " + str(HousePoints[0]) + "\nSlytherin:  " + str(HousePoints[1]) + "\nRavenclaw:  " + str(HousePoints[2]) + "\nHufflepuff:  " + str(HousePoints[3]))
+    bot.send_message(message.chat.id, "Gryffindor:  " + str(HousePoints[0]) + 
+														 "\nSlytherin:  " + str(HousePoints[1]) + 
+														 "\nRavenclaw:  " + str(HousePoints[2]) + 
+														 "\nHufflepuff:  " + str(HousePoints[3]))
 
+
+#Command for anyone to use to see last months point scores of each house
+@bot.message_handler(commands=['last_month'])
+def PointsCount(message):
+    bot.send_message(message.chat.id, "Last months scores were \nGryffindor:  " + str(LastMonthsPoints[0]) + 
+																							  "\nSlytherin:  " + str(LastMonthsPoints[1]) + 
+																							  "\nRavenclaw:  " + str(LastMonthsPoints[2]) + 
+																							  "\nHufflepuff:  " + str(LastMonthsPoints[3]))
+	
 	
 #so names of houses can be called by their index
 def HouseNames(houseIdex):
@@ -108,9 +146,11 @@ def AddPoints3(message):
 
 	userStep[message.from_user.id] = 4
 
+	
 
-while 1 == 1:
+while True:
 	try:
+		bot.set_update_listener(DateCheck)
 		bot.polling()
 	except:
 		time.sleep(30)
