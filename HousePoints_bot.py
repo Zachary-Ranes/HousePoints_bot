@@ -33,12 +33,11 @@ LastMonthsPoints = [0,0,0,0,0]
 
 #reading in records of last months points
 try:
-	with open("HousePoints_bot_record_lastMonth.pickle","rb") as record:
-		LastMonthsPoints = pickle.load(record)
-	record.close()
+	with open("HousePoints_bot_record_lastMonth.pickle","rb") as oldRecord:
+		LastMonthsPoints = pickle.load(oldRecord)
+	oldRecord.close()
 except:
 	print("No HousePoints_bot_record_lastMonth.pickle file found")
-	LastMonthsPoints[4] = 0
 
 	
 # list of prefects telegram id are in the config file
@@ -50,8 +49,8 @@ for id in prefects: userStep[id] = 4
 
 
 #Fuction that check to see if new month has turned yet
-@bot.message_handler(func=lambda message: (int(datetime.datetime.now().day) == 1) and (int(datetime.datetime.now().month) != LastMonthsPoints[4]) )
-def DateCheck(message):
+def LastMonthUpdate(message):
+	if int(datetime.datetime.now().month) != LastMonthsPoints[4]:
 		LastMonthsPoints[0] = HousePoints[0]
 		LastMonthsPoints[1] = HousePoints[1]
 		LastMonthsPoints[2] = HousePoints[2]
@@ -61,9 +60,9 @@ def DateCheck(message):
 		HousePoints[1] = 0
 		HousePoints[2] = 0
 		HousePoints[3] = 0
-		with open("HousePoints_bot_record_lastMonth.pickle","wb") as newRecord:
-			pickle.dump(HousePoints, newRecord)
-		newRecord.close()
+		with open("HousePoints_bot_record_lastMonth.pickle","wb") as newOldRecord:
+			pickle.dump(LastMonthsPoints, newOldRecord)
+		newOldRecord.close()
 
 	
 	
@@ -157,6 +156,7 @@ def AddPoints3(message):
 
 while True:
 	try:
+		bot.set_update_listener(LastMonthUpdate)
 		bot.polling()
 	except:
 		time.sleep(30)
