@@ -49,7 +49,11 @@ for id in prefects: userStep[id] = 4
 
 #Fuction that check to see if new month has turned yet
 def DateCheck(message):
-	if (int(datetime.datetime.now().day) == 1) and (LastMonthsPoints[4] != int(datetime.datetime.now().month)):
+	if (int(datetime.datetime.now().day) == 1) and (LastMonthsPoints[4] != (int(datetime.datetime.now().month))):
+		LastMonthsPoints[0] = HousePoints[0]
+		LastMonthsPoints[1] = HousePoints[1]
+		LastMonthsPoints[2] = HousePoints[2]
+		LastMonthsPoints[3] = HousePoints[3]
 		LastMonthsPoints[4] = int(datetime.datetime.now().month)
 		try:
 			with open("HousePoints_bot_record_lastMonth.pickle","wb") as newRecord:
@@ -58,7 +62,7 @@ def DateCheck(message):
 			
 		except:
 			print("Failed to save pasted scores to file")
-
+		
 	
 	
 
