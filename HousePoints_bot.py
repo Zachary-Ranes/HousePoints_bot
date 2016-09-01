@@ -50,8 +50,8 @@ for id in prefects: userStep[id] = 4
 
 
 #Fuction that check to see if new month has turned yet
+@bot.message_handler(func=lambda message: (int(datetime.datetime.now().day) == 1) and (int(datetime.datetime.now().month) != LastMonthsPoints[4]) )
 def DateCheck(message):
-	if ( (int(datetime.datetime.now().day) == 1) and (int(datetime.datetime.now().month) != LastMonthsPoints[4]) ):
 		LastMonthsPoints[0] = HousePoints[0]
 		LastMonthsPoints[1] = HousePoints[1]
 		LastMonthsPoints[2] = HousePoints[2]
