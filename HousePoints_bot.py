@@ -36,6 +36,7 @@ try:
 		LastMonthsPoints = pickle.load(record)
 	record.close()
 except:
+	LastMonthsPoints = [0,0,0,0,0]
 	print("No HousePoints_bot_record_lastMonth.pickle file found")
 
 	
