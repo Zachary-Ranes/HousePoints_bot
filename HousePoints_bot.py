@@ -30,7 +30,7 @@ except:
 #an array that holds last months scores and the month number from which those scores are from
 LastMonthsPoints =[0,0,0,0,0]
 
-#read =ing in records of last months points
+#reading in records of last months points
 try:
 	with open("HousePoints_bot_record_lastMonth.pickle","rb") as record:
 		LastMonthsPoints = pickle.load(record)
