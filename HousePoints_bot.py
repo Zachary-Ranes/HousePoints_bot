@@ -50,6 +50,7 @@ for id in prefects: userStep[id] = 4
 #Fuction that check to see if new month has turned yet
 def DateCheck(message):
 	if (int(datetime.datetime.now().day) == 1) and (LastMonthsPoints[4] != int(datetime.datetime.now().month)):
+		LastMonthsPoints[4] = int(datetime.datetime.now().month)
 		try:
 			with open("HousePoints_bot_record_lastMonth.pickle","wb") as newRecord:
 				pickle.dump(HousePoints, newRecord)
