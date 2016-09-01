@@ -49,7 +49,7 @@ for id in prefects: userStep[id] = 4
 
 #Fuction that check to see if new month has turned yet
 def DateCheck(message):
-	if (int(datetime.datetime.now().day) == 1) and (LastMonthsPoints[4] != (int(datetime.datetime.now().month))):
+	if ((int(datetime.datetime.now().day) == 1) and ((int(datetime.datetime.now().month)) != int(LastMonthsPoints[4]))):
 		LastMonthsPoints[0] = HousePoints[0]
 		LastMonthsPoints[1] = HousePoints[1]
 		LastMonthsPoints[2] = HousePoints[2]
