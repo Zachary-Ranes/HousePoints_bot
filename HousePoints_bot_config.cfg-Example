@@ -1,6 +1,0 @@
-[telegram_bot_api]
-telegram_token = #Token give by tellegram BotFather
-
-[prefects]
-#telegram ids can be found with prefect_test comand
-id = telegram id #1, telegram id #2
