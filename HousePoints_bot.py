@@ -71,6 +71,7 @@ def command_prefect_test(message):
                                                    message.from_user.first_name,
                                                    message.from_user.last_name)
         bot.reply_to(message, output)
+        pickle.dump( schools, open( "HousePoints_bot_Data.p", "wb" ) )
     else:
         bot.reply_to(message, "There is not school in the chat.")
 
@@ -90,15 +91,14 @@ def command_add_prefect(message):
                                                 "HousePoints_add_prefect_")
 def callback_from_add_prefect(call):
     key = call.message.chat.id 
-    output = schools[key].add_prefect(call.message.from_user.id,
-                                      int(call.data[27:]))
+    output = schools[key].add_prefect(call.from_user.id,
+                                      int(call.data[24:]))
     if output:
         pickle.dump( schools, open( "HousePoints_bot_Data.p", "wb" ) )
-        try:
-            bot.edit_message_text(output, 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id)
-        except: pass
+        bot.edit_message_text(output, 
+                              message_id=call.message.message_id, 
+                              chat_id=call.message.chat.id,
+                              reply_markup=None)
 
 #Responds with a list of house that the headmaster or prefect can give points to 
 @bot.message_handler(commands=['award_points'])
@@ -270,7 +270,7 @@ def callback_school_settings_add_house(call):
     output = schools[key].school_settings_new_house_name(message.from_user.id)
     if output:
         messages_awaiting_responses[call.message.message_id] = \
-                                                    call.message.from_user.id
+                                                    call.from_user.id
         try:
             bot.edit_message_text(output[0], 
                                   message_id=call.message.message_id, 
