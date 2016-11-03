@@ -7,7 +7,7 @@ import cPickle as pickle
 import telebot
 from telebot import types
 
-from HousePoints_bot_Scores import School
+from HousePoints_bot_School import School
 
 #Read configure file
 config = ConfigParser.ConfigParser()
@@ -21,12 +21,17 @@ schools = {}
 
 #key is a messages ID returns a users ID
 messages_awaiting_responses = {}
+messages_awaiting_responses_h = {}
 
 #Loads scores from file when bots startup
 try:
     schools = pickle.load(open("HousePoints_bot_Data.p", "rb"))
 #The first time this bot runs this will fail so this bit is in a try
 except: pass
+
+#made so if I want to change the save file name only have to do in in one place
+def save_to_file():
+    pickle.dump( schools, open( "HousePoints_bot_Data.p", "wb" ) ) 
 
 #The first person in a chat that runs this command becomes headmaster
 @bot.message_handler(commands=['start'])
@@ -41,7 +46,7 @@ def command_start(message):
         schools[key] = School(message.from_user.id,
                               message.from_user.first_name,
                               message.from_user.last_name)
-        pickle.dump( schools, open( "HousePoints_bot_Data.p", "wb" ) )
+        save_to_file()
         bot.reply_to(message, "A new school has been formed in this chat "\
                               "with you as its headmaster.")
         
@@ -71,7 +76,7 @@ def command_prefect_test(message):
                                                    message.from_user.first_name,
                                                    message.from_user.last_name)
         bot.reply_to(message, output)
-        pickle.dump( schools, open( "HousePoints_bot_Data.p", "wb" ) )
+        save_to_file()
     else:
         bot.reply_to(message, "There is not school in the chat.")
 
@@ -94,7 +99,7 @@ def callback_from_add_prefect(call):
     output = schools[key].add_prefect(call.from_user.id,
                                       int(call.data[24:]))
     if output:
-        pickle.dump( schools, open( "HousePoints_bot_Data.p", "wb" ) )
+        save_to_file()
         bot.edit_message_text(output, 
                               message_id=call.message.message_id, 
                               chat_id=call.message.chat.id,
@@ -124,8 +129,7 @@ def callack_ask_how_many_points(call):
                               chat_id=call.message.chat.id,
                               reply_markup=None)
         sent_message = bot.send_message(key, output[0], reply_markup= output[1])
-        messages_awaiting_responses[sent_message.message_id] = \
-                                                    call.from_user.id
+        messages_awaiting_responses[sent_message.message_id] = call.from_user.id
 
 #Parses the force replay to add points to a house
 @bot.message_handler(func=lambda message: message.chat.id in schools
@@ -136,7 +140,7 @@ def award_points_to_house(message):
     == messages_awaiting_responses[message.reply_to_message.message_id]:
       output = schools[key].add_points(message.from_user.id, message.text)
       del messages_awaiting_responses[message.reply_to_message.message_id]
-      pickle.dump( schools, open( "HousePoints_bot_Data.p", "wb" ) )
+      save_to_file()
       bot.reply_to(message, output[0], reply_markup=output[1])
 
 #Shows all the houses in a school and their points 
@@ -158,166 +162,104 @@ def command_school_info(message):
         bot.reply_to(message, output)
     else:
         bot.reply_to(message, "There is not school in the chat.")
-"""
+
 #Command that can be run by headmaster to change settings of the school
 @bot.message_handler(commands=['school_settings'])
 def command_school_settings(message):
     key = message.chat.id
     if key in schools:   
         output = schools[key].school_settings(message.from_user.id)
-        if output:
-            try:
-                bot.edit_message_text(output[0], 
-                                      message_id=call.message.message_id, 
-                                      chat_id=call.message.chat.id,
-                                      reply_markup=output[1])
-            except: pass
+        bot.reply_to(message, output[0], reply_markup=output[1])
     else:
         bot.reply_to(message, "There is not school in the chat.")
 
-#
+#Makes a force reply to the user so they can type out the new house name
 @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                              and call.data == "HousePoints_point_reset")
-def callback_school_settings_reset(call):
-    key = message.chat.id
-    output = schools[key].school_settings_reset(message.from_user.id)
+                                              and call.data == \
+                                              "HousePoints_settings_add_house")
+def callack_ask_new_house_name(call):
+    key = call.message.chat.id 
+    output = schools[key].ask_new_house_name(call.from_user.id)
     if output:
-        try:
-            bot.edit_message_text(output[0], 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id,
-                                  reply_markup=output[1])
-        except: pass
+        bot.edit_message_text("Start new house", 
+                              message_id=call.message.message_id, 
+                              chat_id=call.message.chat.id,
+                              reply_markup=None)
+        sent_message = bot.send_message(key, output[0], reply_markup= output[1])
+        messages_awaiting_responses_h[sent_message.message_id] = \
+                                                            call.from_user.id
 
-#
-@bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                            and call.data[0:24] == "HousePoints_point_reset_")
-def callback_school_settings_reset_options(call):
-    key = message.chat.id
-    output = schools[key].school_settings_reset(message.from_user.id, 
-                                                call.data[24:])
-    if output:
-        try:
-            bot.edit_message_text(output[0], 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id,
-                                  reply_markup=output[1])
-        except: pass
-
-#
-@bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                              and call.data == "HousePoints_remove_prefect")
-def callback_school_settings_remove_prefect(call):
-    key = message.chat.id
-    output = schools[key].school_settings_remove_prefect(message.from_user.id)
-    if output:
-        try:
-            bot.edit_message_text(output[0], 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id,
-                                  reply_markup=output[1])
-        except: pass
-
-#
-@bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                           and call.data[0:27] == "HousePoints_remove_prefect_")
-def callback_school_settings_remove_prefect_id(call):
-    key = message.chat.id
-    output = schools[key].school_settings_remove_prefect(message.from_user.id, 
-                                                         call.data[27:])
-    if output:
-        try:
-            bot.edit_message_text(output[0], 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id,
-                                  reply_markup=output[1])
-        except: pass
-
-#
-@bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                              and call.data == "HousePoints_remove_house")
-def callback_school_settings_remove_house(call):
-    key = message.chat.id
-    output = schools[key].school_settings_remove_house(message.from_user.id)
-    if output:
-        try:
-            bot.edit_message_text(output[0], 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id,
-                                  reply_markup=output[1])
-        except: pass
-
-#
-@bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                    and call.data[0:25] == "HousePoints_remove_house_")
-def callback_school_settings_remove_house_id(call):
-    key = message.chat.id
-    output = schools[key].school_settings_remove_house(message.from_user.id, 
-                                                         call.data[25:])
-    if output:
-        try:
-            bot.edit_message_text(output[0], 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id,
-                                  reply_markup=output[1])
-        except: pass
-
-#
-@bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                                    and call.data == "HousePoints_add_house")
-def callback_school_settings_add_house(call):
-    key = message.chat.id
-    output = schools[key].school_settings_new_house_name(message.from_user.id)
-    if output:
-        messages_awaiting_responses[call.message.message_id] = \
-                                                    call.from_user.id
-        try:
-            bot.edit_message_text(output[0], 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id,
-                                  reply_markup=output[1])
-        except: pass
-
-#
+#Added the newly named house to the school object
 @bot.message_handler(func=lambda message: message.chat.id in schools
-                                      and message.reply_to_message.message_id \
-                                        in messages_awaiting_responses)
-def add_new_house_to_school():
+                                      and message.reply_to_message != None)
+def add_new_house_to_school(message):
     key = message.chat.id 
     if message.from_user.id \
-    == messages_awaiting_responses[message.reply_to_message.message_id]:
-      output = schools[key].add_house(message.from_user.id, message.text)
-      del users_adding_points[message.reply_to_message.message_id]
+    == messages_awaiting_responses_h[message.reply_to_message.message_id]:
+      output = schools[key].add_house(message.text)
+      del messages_awaiting_responses_h[message.reply_to_message.message_id]
+      save_to_file()
       bot.reply_to(message, output[0], reply_markup=output[1])
 
-#
+#List the houses that could be removed
 @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                                    and call.data == "HousePoints_close_school")
-def callback_school_settings_remove_house(call):
-    key = message.chat.id
-    output = schools[key].school_settings_close_school(message.from_user.id)
+                                            and call.data == \
+                                            "HousePoints_settings_remove_house")
+def callack_ask_which_house_to_remove(call):
+    key = call.message.chat.id 
+    output = schools[key].houses_to_remove(call.from_user.id)
     if output:
-        try:
-            bot.edit_message_text(output[0], 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id,
-                                  reply_markup=output[1])
-        except: pass
+        bot.edit_message_text(output[0], 
+                              message_id=call.message.message_id, 
+                              chat_id=call.message.chat.id,
+                              reply_markup=output[1])
 
-#
+#Gets the call back and removes the house
 @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                               and call.data == "HousePoints_close_school_sure")
-def callback_school_settings_remove_house_id(call):
-    key = message.chat.id
-    output = schools[key].school_settings_remove_house(message.from_user.id)
+                                                and call.data[:25] == \
+                                                "HousePoints_remove_house_")
+def callack_remove_a_house(call):
+    key = call.message.chat.id 
+    output = schools[key].remove_house(call.from_user.id, call.data[25:])
     if output:
-        try:
-            bot.edit_message_text(output[0], 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id,
-                                  reply_markup=output[1])
-        except: pass
+        save_to_file()
+        bot.edit_message_text(output, 
+                              message_id=call.message.message_id, 
+                              chat_id=call.message.chat.id,
+                              reply_markup=None)
+
+#List the prefects that could be removed
+@bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
+                                         and call.data == \
+                                         "HousePoints_settings_remove_prefect")
+def callack_ask_which_house_to_remove(call):
+    key = call.message.chat.id 
+    output = schools[key].prefects_to_remove(call.from_user.id)
+    if output:
+        bot.edit_message_text(output[0], 
+                              message_id=call.message.message_id, 
+                              chat_id=call.message.chat.id,
+                              reply_markup=output[1])
+
+#Gets the call back and removes the prefect
+@bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
+                                              and call.data[:27] == \
+                                              "HousePoints_remove_prefect_")
+def callack_remove_a_house(call):
+    key = call.message.chat.id 
+    output = schools[key].remove_prefect(call.from_user.id, int(call.data[27:]))
+    if output:
+        save_to_file()
+        bot.edit_message_text(output, 
+                              message_id=call.message.message_id, 
+                              chat_id=call.message.chat.id,
+                              reply_markup=None)
+
+
+
+
+
 
 #write a function to reset points and the end of the month/week
-"""
+
 bot.polling()
