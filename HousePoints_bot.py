@@ -20,8 +20,8 @@ bot = telebot.TeleBot(config.get("telegram_bot_api","telegram_token"))
 schools = {}
 
 #key is a messages ID returns a users ID
-messages_awaiting_responses = {}
-messages_awaiting_responses_h = {}
+adding_points_forcereplies = {}
+house_name_forcereplies = {}
 
 #Loads scores from file when bots startup
 try:
@@ -92,8 +92,8 @@ def command_add_prefect(message):
 
 #Callback for the adding of prefect from a list that is given to headmaster
 @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                                                and call.data[0:24] == \
-                                                "HousePoints_add_prefect_")
+                                              and call.data[0:24] == \
+                                              "HousePoints_add_prefect_")
 def callback_from_add_prefect(call):
     key = call.message.chat.id 
     output = schools[key].add_prefect(call.from_user.id,
@@ -117,8 +117,8 @@ def command_select_houese_to_award_points(message):
 
 #Callback that puts up a force reply to the player prompting for how many points 
 @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                                                and call.data[0:28] == \
-                                                "HousePoints_award_points_to_")
+                                              and call.data[0:28] == \
+                                              "HousePoints_award_points_to_")
 def callack_ask_how_many_points(call):
     key = call.message.chat.id 
     output = schools[key].how_many_points(call.from_user.id,
@@ -129,19 +129,27 @@ def callack_ask_how_many_points(call):
                               chat_id=call.message.chat.id,
                               reply_markup=None)
         sent_message = bot.send_message(key, output[0], reply_markup= output[1])
-        messages_awaiting_responses[sent_message.message_id] = call.from_user.id
+        adding_points_forcereplies[sent_message.message_id] = call.from_user.id
 
 #Parses the force replay to add points to a house
 @bot.message_handler(func=lambda message: message.chat.id in schools
                                       and message.reply_to_message != None)
-def award_points_to_house(message):
+def forcereplies(message):
     key = message.chat.id 
-    if message.from_user.id \
-    == messages_awaiting_responses[message.reply_to_message.message_id]:
-      output = schools[key].add_points(message.from_user.id, message.text)
-      del messages_awaiting_responses[message.reply_to_message.message_id]
-      save_to_file()
-      bot.reply_to(message, output[0], reply_markup=output[1])
+    if message.reply_to_message.message_id in adding_points_forcereplies:   
+        if message.from_user.id \
+        == adding_points_forcereplies[message.reply_to_message.message_id]:
+          output = schools[key].add_points(message.from_user.id, message.text)
+          del adding_points_forcereplies[message.reply_to_message.message_id]
+          save_to_file()
+          bot.reply_to(message, output[0], reply_markup=output[1])
+    if message.reply_to_message.message_id in house_name_forcereplies:
+        if message.from_user.id \
+        == house_name_forcereplies[message.reply_to_message.message_id]:
+          output = schools[key].add_house(str(message.text))
+          del house_name_forcereplies[message.reply_to_message.message_id]
+          save_to_file()
+          bot.reply_to(message, output[0], reply_markup=output[1])
 
 #Shows all the houses in a school and their points 
 @bot.message_handler(commands=['house_totals'])
@@ -186,24 +194,11 @@ def callack_ask_new_house_name(call):
                               chat_id=call.message.chat.id,
                               reply_markup=None)
         sent_message = bot.send_message(key, output[0], reply_markup= output[1])
-        messages_awaiting_responses_h[sent_message.message_id] = \
-                                                            call.from_user.id
-
-#Added the newly named house to the school object
-@bot.message_handler(func=lambda message: message.chat.id in schools
-                                      and message.reply_to_message != None)
-def add_new_house_to_school(message):
-    key = message.chat.id 
-    if message.from_user.id \
-    == messages_awaiting_responses_h[message.reply_to_message.message_id]:
-      output = schools[key].add_house(message.text)
-      del messages_awaiting_responses_h[message.reply_to_message.message_id]
-      save_to_file()
-      bot.reply_to(message, output[0], reply_markup=output[1])
+        house_name_forcereplies[sent_message.message_id] = call.from_user.id
 
 #List the houses that could be removed
 @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                                            and call.data == \
+                                              and call.data == \
                                             "HousePoints_settings_remove_house")
 def callack_ask_which_house_to_remove(call):
     key = call.message.chat.id 
@@ -216,8 +211,8 @@ def callack_ask_which_house_to_remove(call):
 
 #Gets the call back and removes the house
 @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                                                and call.data[:25] == \
-                                                "HousePoints_remove_house_")
+                                              and call.data[:25] == \
+                                              "HousePoints_remove_house_")
 def callack_remove_a_house(call):
     key = call.message.chat.id 
     output = schools[key].remove_house(call.from_user.id, call.data[25:])
@@ -230,7 +225,7 @@ def callack_remove_a_house(call):
 
 #List the prefects that could be removed
 @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools 
-                                         and call.data == \
+                                              and call.data == \
                                          "HousePoints_settings_remove_prefect")
 def callack_ask_which_house_to_remove(call):
     key = call.message.chat.id 

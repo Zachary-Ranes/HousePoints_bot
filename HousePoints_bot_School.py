@@ -17,6 +17,7 @@ class School(object):
                        "Ravenclaw":0, 
                        "Hufflepuff":0}
         self.user_awarding_points_to_house = {}
+        self.houses_before_last_reset = {}
 
     #
     def add_to_prefect_waiting_list(self, user_id, user_first, user_last):
