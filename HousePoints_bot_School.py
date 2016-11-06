@@ -1,15 +1,17 @@
 #Author: Zachary Ranes
 #Written in Python 2.7
 
+import datetime 
 import telebot
 from telebot import types
 
 #
 class School(object):
     #Constructor for class 
-    def __init__(self, headmaster_id, headmaster_first, headmaster_last):
+    def __init__(self, chat_id, headmaster_id, headmaster_f, headmaster_l):
+        self.school_chat_id = chat_id
         self.headmaster_id = headmaster_id
-        self.headmaster_name = headmaster_first + " " + headmaster_last
+        self.headmaster_name = headmaster_f + " " + headmaster_l
         self.prefect_waiting_list = {}
         self.prefects = {}
         self.houses = {"Gryffindor":0, 
@@ -17,7 +19,8 @@ class School(object):
                        "Ravenclaw":0, 
                        "Hufflepuff":0}
         self.user_awarding_points_to_house = {}
-        self.houses_before_last_reset = {}
+        self.monthly_reset = False
+        self.current_month = None
 
     #
     def add_to_prefect_waiting_list(self, user_id, user_first, user_last):
@@ -96,7 +99,7 @@ class School(object):
                   "This school's prefects are: \n" 
         for prefect_id in self.prefects:
             message += self.prefects[prefect_id] + "\n"
-        message += "This school has the following houses: \n"
+        message += "This school's houses are: \n"
         for house_name in self.houses:
             message += house_name + "\n"
         return message
@@ -118,6 +121,9 @@ class School(object):
                    types.InlineKeyboardButton(
                             callback_data="HousePoints_settings_reset_points",
                             text="Reset house points"))
+        markup.row(types.InlineKeyboardButton(
+                            callback_data="HousePoints_settings_close_school",
+                            text="Close school"))
         return( "What would you like to change", markup)
 
     #
@@ -173,3 +179,67 @@ class School(object):
             name = self.prefects[prefect_id]
             del self.prefects[prefect_id]
             return name+" is no longer a prefect."
+
+    #
+    def reset_settings_info(self, user_id):
+        if user_id != self.headmaster_id:
+            return False
+        markup = types.InlineKeyboardMarkup()
+        markup.row(types.InlineKeyboardButton(
+                            callback_data="HousePoints_reset_monthly",
+                            text="Reset Monthly"),
+                   types.InlineKeyboardButton(
+                            callback_data="HousePoints_reset_never",
+                            text="No Auto Reset"))
+        markup.row(types.InlineKeyboardButton(
+                            callback_data="HousePoints_reset_now",
+                            text="Reset Points Now"))
+        return("The bot can automatically reset the house's points at the "\
+               "start of every month, you can also manually reset all the "\
+               "house's points. Remember you can award negative points to "\
+               "houses if you wish to remove points from a single house.", 
+               markup)
+
+    #
+    def resset_settings(self, user_id, option):
+        if user_id != self.headmaster_id:
+            return False
+        if option == "monthly":
+            self.current_month = datetime.datetime.now().month
+            self.monthly_reset = True
+            return "The houses of this school will now have their points reset"\
+                   " at the start of every month."
+        if option == "never":
+            self.current_month = None
+            self.monthly_reset = False
+            return "The houses of this school will not have their points reset."
+        if option == "now":
+            for house_name in self.houses:
+                self.houses[house_name] = 0
+            return "All houses have head their points reset to 0."
+
+    def check_for_point_reset(self, month):
+        if self.monthly_reset:
+            if month != self.current_month:
+                for house_name in self.houses:
+                    self.houses[house_name] = 0
+                return "Houses points have been reset."
+
+    def close_school(self, user_id, option=None):
+        if user_id != self.headmaster_id:
+            return False 
+        if option == None:
+            markup = types.InlineKeyboardMarkup()
+            markup.row(types.InlineKeyboardButton(
+                                callback_data="HousePoints_close_school_true",
+                                text="Yes I am sure, Burn the school"),
+                       types.InlineKeyboardButton(
+                                callback_data="HousePoints_close_school_false",
+                                text="No that was a mistake to click"))
+            return("Headmaster ARE YOU SURE you want to close the school????", 
+                    markup)
+        if option == True:
+            return ("The school in this chat is now GONE, an new headmaster "\
+                    "can start a new school with the /start command.", None)
+        if option == False:
+            return ("Good the headmaster has come to their scenes.", None)
