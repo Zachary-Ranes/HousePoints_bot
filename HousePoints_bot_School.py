@@ -21,6 +21,7 @@ class School(object):
         self.user_awarding_points_to_house = {}
         self.monthly_reset = False
         self.current_month = None
+        self.past_houses_scores = None
 
     #
     def add_to_prefect_waiting_list(self, user_id, user_first, user_last):
@@ -214,16 +215,32 @@ class School(object):
             self.monthly_reset = False
             return "The houses of this school will not have their points reset."
         if option == "now":
-            for house_name in self.houses:
-                self.houses[house_name] = 0
+            self.reset_house_scores()
             return "All houses have head their points reset to 0."
 
+    #
     def check_for_point_reset(self, month):
         if self.monthly_reset:
             if month != self.current_month:
-                for house_name in self.houses:
-                    self.houses[house_name] = 0
+                self.reset_house_scores()
                 return "Houses points have been reset."
+
+    #
+    def reset_house_scores(self):
+        self.past_houses_scores = self.houses.copy()
+        for house_name in self.houses:
+            self.houses[house_name] = 0
+
+    #
+    def past_scores(self):
+        if self.past_houses_scores == None:
+            return "There has not been a point reset in this school yet."
+        message = "Before the last reset the houses totals were:\n"
+        for house_name in self.past_houses_scores:
+            message += house_name + ": " + \
+                str(self.past_houses_scores[house_name]) + "\n"
+        return message
+
 
     def close_school(self, user_id, option=None):
         if user_id != self.headmaster_id:

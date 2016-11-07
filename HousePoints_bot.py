@@ -31,6 +31,9 @@ try:
 #The first time this bot runs this will fail so this bit is in a try
 except: pass
 
+#86400 sec = 24 hours
+CHECK_FOR_RESET_INTERVAL = 86400.0
+
 #made so if I want to change the save file name only have to do in in one place
 def save_to_file():
     pickle.dump( schools, open( "HousePoints_bot_Data.p", "wb" ) ) 
@@ -328,7 +331,7 @@ def callack_reset_now(call):
 
 #Runs the check in all the chat to see if points should be reset
 def check_for_reset():
-    threading.Timer(86400.0, check_for_reset).start()
+    threading.Timer(CHECK_FOR_RESET_INTERVAL, check_for_reset).start()
     current_month = datetime.datetime.now().month
     for chat_id in schools:
         output = schools[chat_id].check_for_point_reset(current_month)
@@ -381,6 +384,15 @@ def callack_reset_now(call):
                                   chat_id=call.message.chat.id,
                                   reply_markup=output[1])
         except: pass
+
+#
+@bot.message_handler(commands=["past_totals"])
+def past_scores(message):
+    key = message.chat.id
+    if key in schools:
+        bot.reply_to(message, schools[key].past_scores())
+    else:
+        bot.reply_to(message, "There is not school in the chat.")
 
 
 #start the function that will run every 24 hours to check point reset timers
