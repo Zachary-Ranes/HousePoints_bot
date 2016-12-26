@@ -32,14 +32,17 @@ class School(object):
         if user_id in self.prefect_waiting_list:
             return "You have already taken the prefect test, "\
                    "now you need to wait for the headmasters decision."
-        self.prefect_waiting_list[user_id] = user_first + " " + user_last
+        name = ""
+        if user_first: name = user_first
+        if user_last: name = name + " " + user_last
+        self.prefect_waiting_list[user_id] = name
         return "You have taken the prefect test, "\
                "now wait for the headmaster to review it"
 
     #
     def review_prefect_waiting_list(self, user_id):
         if user_id != self.headmaster_id:
-            return "Only the headmaster can add prefects"
+            return ("Only the headmaster can add prefects", None)
         markup = types.InlineKeyboardMarkup()
         for prefect_id in self.prefect_waiting_list:
             markup.row(types.InlineKeyboardButton(
@@ -76,7 +79,8 @@ class School(object):
 
     #
     def add_points(self, user_id, points_text):
-        markup = types.ReplyKeyboardHide(selective=False)
+        #markup = types.ReplyKeyboardHide(selective=False)
+        markup = None
         try:
             points = int(points_text)
         except:
@@ -136,7 +140,8 @@ class School(object):
 
     #
     def add_house(self, house_name):
-        markup = types.ReplyKeyboardHide(selective=False)
+        #markup = types.ReplyKeyboardHide(selective=False)
+        markup = None
         if house_name in self.houses:
             return("There is already a house by that name.", markup)
         self.houses[house_name] = 0
