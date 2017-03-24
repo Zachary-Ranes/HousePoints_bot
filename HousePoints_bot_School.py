@@ -74,7 +74,7 @@ class School(object):
         if user_id != self.headmaster_id and user_id not in self.prefects:
             return False
         self.user_awarding_points_to_house[user_id] = house_name
-        markup = types.ForceReply(selective=False)
+        markup = types.ForceReply(selective=True)
         return(("How many points should be awarded to "+house_name+"?"), markup)
 
     #
@@ -135,7 +135,7 @@ class School(object):
     def ask_new_house_name(self, user_id):
         if user_id != self.headmaster_id:
             return False
-        markup = types.ForceReply(selective=False)
+        markup = types.ForceReply(selective=True)
         return(("What is the name of the new house"), markup)
 
     #

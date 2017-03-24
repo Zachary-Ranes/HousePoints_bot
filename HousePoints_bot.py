@@ -42,10 +42,10 @@ def save_to_file():
 @bot.message_handler(commands=['start'])
 def command_start(message):
     key = message.chat.id
-    if key in schools:
-        bot.reply_to(message, "There is already a school established here.")
     if message.chat.type == "private":
         bot.reply_to(message, "You can't start a school in a private chat.")
+    if key in schools:
+        bot.reply_to(message, "There is already a school established here.")
     if key not in schools and message.chat.type == "group"\
     or key not in schools and message.chat.type == "supergroup":
         schools[key] = School(key,
@@ -398,4 +398,4 @@ def past_scores(message):
 #start the function that will run every 24 hours to check point reset timers
 check_for_reset()
 #polling will start so the bot can interact with telegram 
-bot.polling()
+bot.polling(none_stop=False, interval=0, block=True)
