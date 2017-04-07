@@ -129,7 +129,9 @@ def command_select_houese_to_award_points(message):
                                               "HousePoints_award_points_to_")
 def callack_ask_how_many_points(call):
     key = call.message.chat.id 
-    output = schools[key].how_many_points(call.from_user.id, call.data[28:])
+    output = schools[key].how_many_points(call.from_user.id, \
+                                          call.from_user.username, \
+                                          call.data[28:])
     if output:
         bot.edit_message_text(call.data[28:], 
                               message_id=call.message.message_id, 
@@ -193,7 +195,8 @@ def command_school_settings(message):
                                               "HousePoints_settings_add_house")
 def callack_ask_new_house_name(call):
     key = call.message.chat.id 
-    output = schools[key].ask_new_house_name(call.from_user.id)
+    output = schools[key].ask_new_house_name(call.from_user.id,\
+                                             call.from_user.username)
     if output:
         try:
             bot.edit_message_text("Start new house", 
@@ -270,9 +273,9 @@ def callack_remove_a_house(call):
 @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools
                                               and call.data == \
                                             "HousePoints_settings_reset_points")
-def callback_ask_when_to_reset(call):
+def callback_reset_points(call):
     key = call.message.chat.id
-    output = schools[key].reset_settings_info(call.from_user.id)
+    output = schools[key].reset_schools_points(call.from_user.id)
     if output:
         try:
             bot.edit_message_text(output[0],
@@ -281,62 +284,63 @@ def callback_ask_when_to_reset(call):
                                   reply_markup=output[1])
         except: pass
 
-#
-@bot.callback_query_handler(func=lambda call: call.message.chat.id in schools
-                                              and call.data == \
-                                              "HousePoints_reset_monthly")
-def callack_reset_monthly(call):
-    key = call.message.chat.id 
-    output = schools[key].resset_settings(call.from_user.id, "monthly")
-    if output:
-        save_to_file()
-        try:
-            bot.edit_message_text(output, 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id,
-                                  reply_markup=None)
-        except: pass
+# #
+# @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools
+#                                               and call.data == \
+#                                               "HousePoints_reset_monthly")
+# def callack_reset_monthly(call):
+#     key = call.message.chat.id 
+#     output = schools[key].resset_settings(call.from_user.id, "monthly")
+#     if output:
+#         save_to_file()
+#         try:
+#             bot.edit_message_text(output, 
+#                                   message_id=call.message.message_id, 
+#                                   chat_id=call.message.chat.id,
+#                                   reply_markup=None)
+#         except: pass
 
-#
-@bot.callback_query_handler(func=lambda call: call.message.chat.id in schools
-                                              and call.data == \
-                                              "HousePoints_reset_never")
-def callack_reset_never(call):
-    key = call.message.chat.id 
-    output = schools[key].resset_settings(call.from_user.id, "never")
-    if output:
-        save_to_file()
-        try:
-            bot.edit_message_text(output, 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id,
-                                  reply_markup=None)
-        except: pass
+# #
+# @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools
+#                                               and call.data == \
+#                                               "HousePoints_reset_never")
+# def callack_reset_never(call):
+#     key = call.message.chat.id 
+#     output = schools[key].resset_settings(call.from_user.id, "never")
+#     if output:
+#         save_to_file()
+#         try:
+#             bot.edit_message_text(output, 
+#                                   message_id=call.message.message_id, 
+#                                   chat_id=call.message.chat.id,
+#                                   reply_markup=None)
+#         except: pass
 
-#
-@bot.callback_query_handler(func=lambda call: call.message.chat.id in schools
-                                              and call.data == \
-                                              "HousePoints_reset_now")
-def callack_reset_now(call):
-    key = call.message.chat.id 
-    output = schools[key].resset_settings(call.from_user.id, "now")
-    if output:
-        save_to_file()
-        try:
-            bot.edit_message_text(output, 
-                                  message_id=call.message.message_id, 
-                                  chat_id=call.message.chat.id,
-                                  reply_markup=None)
-        except: pass
+# #
+# @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools
+#                                               and call.data == \
+#                                               "HousePoints_reset_now")
+# def callack_reset_now(call):
+#     key = call.message.chat.id 
+#     output = schools[key].resset_settings(call.from_user.id, "now")
+#     if output:
+#         save_to_file()
+#         try:
+#             bot.edit_message_text(output, 
+#                                   message_id=call.message.message_id, 
+#                                   chat_id=call.message.chat.id,
+#                                   reply_markup=None)
+#         except: pass
 
-#Runs the check in all the chat to see if points should be reset
-def check_for_reset():
-    threading.Timer(CHECK_FOR_RESET_INTERVAL, check_for_reset).start()
-    current_month = datetime.datetime.now().month
-    for chat_id in schools:
-        output = schools[chat_id].check_for_point_reset(current_month)
-        if output:
-            bot.sent_message(chat_id, output)
+# #Runs the check in all the chat to see if points should be reset
+# def check_for_reset():
+#     threading.Timer(CHECK_FOR_RESET_INTERVAL, check_for_reset).start()
+#     current_month = datetime.datetime.now().month
+#     for chat_id in schools:
+#         output = schools[chat_id].check_for_point_reset(current_month)
+#         if output:
+#             bot.send_message(chat_id, output)
+
 
 #
 @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools
@@ -357,12 +361,12 @@ def callback_ask_if_close_school(call):
 @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools
                                               and call.data == \
                                               "HousePoints_close_school_true")
-def callack_reset_now(call):
+def callack_close_school_true(call):
     key = call.message.chat.id 
     output = schools[key].close_school(call.from_user.id, True)
     if output:
-        save_to_file()
         del schools[key]
+        save_to_file()
         try:
             bot.edit_message_text(output, 
                                   message_id=call.message.message_id, 
@@ -374,7 +378,7 @@ def callack_reset_now(call):
 @bot.callback_query_handler(func=lambda call: call.message.chat.id in schools
                                               and call.data == \
                                               "HousePoints_close_school_false")
-def callack_reset_now(call):
+def callack_close_school_false(call):
     key = call.message.chat.id 
     output = schools[key].close_school(call.from_user.id, False)
     if output:
@@ -387,7 +391,7 @@ def callack_reset_now(call):
 
 #
 @bot.message_handler(commands=["past_totals"])
-def past_scores(message):
+def command_past_totals(message):
     key = message.chat.id
     if key in schools:
         bot.reply_to(message, schools[key].past_scores())
@@ -395,7 +399,9 @@ def past_scores(message):
         bot.reply_to(message, "There is not school in the chat.")
 
 
-#start the function that will run every 24 hours to check point reset timers
-check_for_reset()
+# #start the function that will run every 24 hours to check point reset timers
+# check_for_reset()
+
+
 #polling will start so the bot can interact with telegram 
-bot.polling(none_stop=False, interval=0, block=True)
+bot.polling()

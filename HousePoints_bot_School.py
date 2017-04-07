@@ -70,12 +70,13 @@ class School(object):
         return("Which house would you like to award points to?", markup)
 
     #
-    def how_many_points(self, user_id, house_name):
+    def how_many_points(self, user_id, user_uname, house_name):
         if user_id != self.headmaster_id and user_id not in self.prefects:
             return False
         self.user_awarding_points_to_house[user_id] = house_name
         markup = types.ForceReply(selective=True)
-        return(("How many points should be awarded to "+house_name+"?"), markup)
+        return(("@"+user_uname+" how many points are you awardeding to "+\
+            house_name+"?"), markup)
 
     #
     def add_points(self, user_id, points_text):
@@ -132,11 +133,12 @@ class School(object):
         return( "What would you like to change", markup)
 
     #
-    def ask_new_house_name(self, user_id):
+    def ask_new_house_name(self, user_id, user_uname):
         if user_id != self.headmaster_id:
             return False
         markup = types.ForceReply(selective=True)
-        return(("What is the name of the new house"), markup)
+        return(
+            ("@"+user_uname+", What is the name of the new house"), markup)
 
     #
     def add_house(self, house_name):
@@ -185,68 +187,77 @@ class School(object):
             name = self.prefects[prefect_id]
             del self.prefects[prefect_id]
             return name+" is no longer a prefect."
-
+    
     #
-    def reset_settings_info(self, user_id):
+    def reset_schools_points(self, user_id):
         if user_id != self.headmaster_id:
             return False
-        markup = types.InlineKeyboardMarkup()
-        markup.row(types.InlineKeyboardButton(
-                            callback_data="HousePoints_reset_monthly",
-                            text="Reset Monthly"),
-                   types.InlineKeyboardButton(
-                            callback_data="HousePoints_reset_never",
-                            text="No Auto Reset"))
-        markup.row(types.InlineKeyboardButton(
-                            callback_data="HousePoints_reset_now",
-                            text="Reset Points Now"))
-        return("The bot can automatically reset the house's points at the "\
-               "start of every month, you can also manually reset all the "\
-               "house's points. Remember you can award negative points to "\
-               "houses if you wish to remove points from a single house.", 
-               markup)
+        else:
+            self.past_houses_scores = self.houses.copy()
+            for house_name in self.houses:
+                self.houses[house_name] = 0
+            return ("A new school year has started, the house totals have reset.", None)
+    # #
+    # def reset_settings_info(self, user_id):
+    #     if user_id != self.headmaster_id:
+    #         return False
+    #     markup = types.InlineKeyboardMarkup()
+    #     markup.row(types.InlineKeyboardButton(
+    #                         callback_data="HousePoints_reset_monthly",
+    #                         text="Reset Monthly"),
+    #                types.InlineKeyboardButton(
+    #                         callback_data="HousePoints_reset_never",
+    #                         text="No Auto Reset"))
+    #     markup.row(types.InlineKeyboardButton(
+    #                         callback_data="HousePoints_reset_now",
+    #                         text="Reset Points Now"))
+    #     return("The bot can automatically reset the house's points at the "\
+    #            "start of every month, you can also manually reset all the "\
+    #            "house's points. Remember you can award negative points to "\
+    #            "houses if you wish to remove points from a single house.", 
+    #            markup)
 
-    #
-    def resset_settings(self, user_id, option):
-        if user_id != self.headmaster_id:
-            return False
-        if option == "monthly":
-            self.current_month = datetime.datetime.now().month
-            self.monthly_reset = True
-            return "The houses of this school will now have their points reset"\
-                   " at the start of every month."
-        if option == "never":
-            self.current_month = None
-            self.monthly_reset = False
-            return "The houses of this school will not have their points reset."
-        if option == "now":
-            self.reset_house_scores()
-            return "All houses have head their points reset to 0."
+    # #
+    # def resset_settings(self, user_id, option):
+    #     if user_id != self.headmaster_id:
+    #         return False
+    #     if option == "monthly":
+    #         self.current_month = datetime.datetime.now().month
+    #         self.monthly_reset = True
+    #         return "The houses of this school will now have their points reset"\
+    #                " at the start of every month."
+    #     if option == "never":
+    #         self.current_month = None
+    #         self.monthly_reset = False
+    #         return "The houses of this school will not have their points reset."
+    #     if option == "now":
+    #         self.reset_house_scores()
+    #         return "All houses have head their points reset to 0."
 
-    #
-    def check_for_point_reset(self, month):
-        if self.monthly_reset:
-            if month != self.current_month:
-                self.reset_house_scores()
-                return "Houses points have been reset."
+    # #
+    # def check_for_point_reset(self, month):
+    #     if self.monthly_reset:
+    #         if month != self.current_month:
+    #             self.reset_house_scores()
+    #             return "Houses points have been reset."
 
-    #
-    def reset_house_scores(self):
-        self.past_houses_scores = self.houses.copy()
-        for house_name in self.houses:
-            self.houses[house_name] = 0
+    # #
+    # def reset_house_scores(self):
+    #     self.past_houses_scores = self.houses.copy()
+    #     for house_name in self.houses:
+    #         self.houses[house_name] = 0
 
     #
     def past_scores(self):
         if self.past_houses_scores == None:
             return "There has not been a point reset in this school yet."
-        message = "Before the last reset the houses totals were:\n"
+        message = "Last school year the houses totals were:\n"
         for house_name in self.past_houses_scores:
             message += house_name + ": " + \
                 str(self.past_houses_scores[house_name]) + "\n"
         return message
 
-
+    #
     def close_school(self, user_id, option=None):
         if user_id != self.headmaster_id:
             return False 
